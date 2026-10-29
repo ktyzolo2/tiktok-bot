@@ -158,7 +158,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         logging.error(f"Error downloading: {e}")
-        await status_msg.edit_text("❌ មិនអាចទិញយកបានទេ ")
+        await status_msg.edit_text("❌ មិនអាចទាញយកបានទេ ")
 
     finally:
         if file_path and os.path.exists(file_path):
