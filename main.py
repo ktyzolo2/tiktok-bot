@@ -15,7 +15,6 @@ def home():
     return "Bot is running 24/7 successfully!"
 
 def run():
-    # Render ប្រើប្រាស់ Environment Variable ឈ្មោះ PORT
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port)
 
@@ -35,7 +34,7 @@ CHANNEL_USERNAME = "@tiktokdonl"
 # Regex សម្រាប់ត្រួតពិនិត្យ Link TikTok
 TIKTOK_REGEX = r'(https?://(?:www\.|vt\.|vm\.)?tiktok\.com/[^\s]+)'
 
-# មុខងារឆ្គងផ្ទៀងផ្ទាត់ថាតើ User បានចូល Channel ហើយឬនៅ
+# មុខងារផ្ទៀងផ្ទាត់ថាតើ User បានចូល Channel ហើយឬនៅ
 async def check_user_subscription(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> bool:
     try:
         member = await context.bot.get_chat_member(chat_id=CHANNEL_USERNAME, user_id=user_id)
@@ -127,7 +126,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     file_path = None
     try:
         ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',
+            'format': 'best',
             'outtmpl': 'downloads/%(id)s.%(ext)s',
             'quiet': True,
             'no_warnings': True,
@@ -159,14 +158,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         logging.error(f"Error downloading: {e}")
-        await status_msg.edit_text("❌ មានបញ្ហាក្នុងการទាញយក! អាចមកពី Link ខុស ឬ Server TikTok មានการផ្លាស់ប្តូរ។")
+        await status_msg.edit_text("❌ មិនអាចទាញយកបានទេ")
 
     finally:
         if file_path and os.path.exists(file_path):
             os.remove(file_path)
 
 if __name__ == '__main__':
-    # ចាប់ផ្តើម Web Server ក្នុង Background Thread ដើម្បីបំពេញលក្ខខណ្ឌ Render Web Service
     keep_alive()
 
     if not os.path.exists('downloads'):
@@ -175,8 +173,4 @@ if __name__ == '__main__':
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    app.add_handler(CallbackQueryHandler(button_callback))
-
-    print("Bot និង Web Server កំពុងដំណើរការហើយ...")
-    app.run_polling()
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.
