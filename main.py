@@ -1,11 +1,29 @@
 import os
 import re
 import logging
+from flask import Flask
+from threading import Thread
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 import yt_dlp
 
-# កត់ត្រា Logs
+# --- 1. បង្កើត Web Server តូចមួយសម្រាប់ Render Web Service ---
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Bot is running 24/7 successfully!"
+
+def run():
+    # Render ប្រើប្រាស់ Environment Variable ឈ្មោះ PORT
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
+
+def keep_alive():
+    t = Thread(target=run)
+    t.start()
+
+# --- 2. កត់ត្រា Logs ---
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 # Token របស់អ្នក
@@ -28,7 +46,7 @@ async def check_user_subscription(user_id: int, context: ContextTypes.DEFAULT_TY
         logging.error(f"Error checking chat member: {e}")
         return False
 
-# មុខងារផ្ញើសារប្រាប់ឱ្យចូលរួម Channel
+# មុខងារផ្ើសើសារប្រាប់ឱ្យចូលរួម Channel
 async def send_subscription_required_message(update_or_query, user_name: str):
     keyboard = [
         [InlineKeyboardButton("📢 ចូលរួម Channel (Join)", url="https://t.me/tiktokdonl")],
@@ -66,7 +84,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "ឥឡូវនេះ អ្នកអាចផ្ញើ Link TikTok មកបានហើយ!"
         )
 
-# មុខងារពេល User ចុចប៊ូតុងពិនិត្យการ Join
+# មុខងារពេល User ចុចប៊ូតុងពិនិត្យការ Join
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -80,7 +98,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if is_joined:
             await query.edit_message_text(
                 f"✅ អរគុណ {user_name} ដែលបានចូលរួម Channel របស់យើង!\n\n"
-                "ឥឡូវនេះអ្នកអាចផ្ញើ Link វីដេអូ TikTok មកទីនេះដើម្បីទាញយកបានធម្មតាហើយ។"
+                "ឥឡូវនេះអ្នកអាចផ្ញើ Link វីដេអូ TikTok មកទីនេះដើម្បីទាញយកបានធម្មតាហើយ。"
             )
         else:
             await send_subscription_required_message(query, user_name)
@@ -123,7 +141,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             uploader = info.get('uploader', info.get('creator', 'មិនស្គាល់ឈ្មោះ'))
             like_count = info.get('like_count', 0)
 
-        # កែសម្រួលមិនដាក់សញ្ញា Markdown ដើម្បីការពារ Error
         caption = (
             f"📌 ចំណងជើង៖ {title}\n"
             f"👤 អ្នកបង្ហោះ៖ {uploader}\n"
@@ -142,13 +159,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         logging.error(f"Error downloading: {e}")
-        await status_msg.edit_text("❌ មានបញ្ហាក្នុងការទាញយក! អាចមកពី Link ខុស ឬ Server TikTok មានការផ្លាស់ប្តូរ។")
+        await status_msg.edit_text("❌ មានបញ្ហាក្នុងการទាញយក! អាចមកពី Link ខុស ឬ Server TikTok មានการផ្លាស់ប្តូរ។")
 
     finally:
         if file_path and os.path.exists(file_path):
             os.remove(file_path)
 
 if __name__ == '__main__':
+    # ចាប់ផ្តើម Web Server ក្នុង Background Thread ដើម្បីបំពេញលក្ខខណ្ឌ Render Web Service
+    keep_alive()
+
     if not os.path.exists('downloads'):
         os.makedirs('downloads')
 
@@ -158,5 +178,5 @@ if __name__ == '__main__':
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
     app.add_handler(CallbackQueryHandler(button_callback))
 
-    print("Bot ដំណើរការហើយ...")
+    print("Bot និង Web Server កំពុងដំណើរការហើយ...")
     app.run_polling()
