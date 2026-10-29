@@ -34,7 +34,7 @@ CHANNEL_USERNAME = "@tiktokdonl"
 # Regex សម្រាប់ត្រួតពិនិត្យ Link TikTok
 TIKTOK_REGEX = r'(https?://(?:www\.|vt\.|vm\.)?tiktok\.com/[^\s]+)'
 
-# មុខងារផ្ទៀងផ្ទាត់ថាតើ User បានចូល Channel ហើយឬនៅ
+# មុខងារឆ្គងផ្ទៀងផ្ទាត់ថាតើ User បានចូល Channel ហើយឬនៅ
 async def check_user_subscription(user_id: int, context: ContextTypes.DEFAULT_TYPE) -> bool:
     try:
         member = await context.bot.get_chat_member(chat_id=CHANNEL_USERNAME, user_id=user_id)
@@ -83,7 +83,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "ឥឡូវនេះ អ្នកអាចផ្ញើ Link TikTok មកបានហើយ!"
         )
 
-# មុខងារពេល User ចុចប៊ូតុងពិនិត្យការ Join
+# មុខងារពេល User ចុចប៊ូតុងពិនិត្យการ Join
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -158,7 +158,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     except Exception as e:
         logging.error(f"Error downloading: {e}")
-        await status_msg.edit_text("❌ មិនអាចទាញយកបានទេ")
+        await status_msg.edit_text("❌ មិនអាចទិញយកបានទេ ")
 
     finally:
         if file_path and os.path.exists(file_path):
@@ -173,4 +173,8 @@ if __name__ == '__main__':
     app = ApplicationBuilder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(CallbackQueryHandler(button_callback))
+
+    print("Bot និង Web Server កំពុងដំណើរការហើយ...")
+    app.run_polling()
